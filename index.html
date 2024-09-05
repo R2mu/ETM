@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Reliability Tutorial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { font-size: 2em; margin-bottom: 20px; }
+        h2 { font-size: 1.5em; margin-top: 30px; margin-bottom: 15px; }
+        .section { margin-bottom: 30px; }
+        #visualization { margin-top: 30px; margin-bottom: 30px; }
+        .controls-container { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .column { width: 48%; }
+        .slider-container { margin-bottom: 10px; display: flex; align-items: center; }
+        .slider-container label { width: 180px; margin-right: 10px; }
+        .slider-container input[type="range"] { width: calc(100% - 240px); }
+        .slider-value { width: 40px; text-align: right; }
+        #chart { width: 100%; height: 400px; margin-bottom: 20px; }
+        .toggle-container { display: flex; justify-content: center; gap: 20px; }
+        .toggle-group { display: flex; align-items: center; }
+        .toggle-group label { margin-right: 10px; }
+        .subject-line { transition: all 0.1s ease; }
+        #data-input { margin-top: 20px; }
+        #calculation-form { margin-top: 20px; }
+        .feedback { padding: 10px; margin-top: 10px; border-radius: 5px; }
+        .correct { background-color: #d4edda; color: #155724; }
+        .incorrect { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Reliability Tutorial Week 3</h1>
+    
+    <div class="section" id="background">
+        <h2>Background Information</h2>
+        <p>Reliability in measurements is a crucial concept in various fields. Here are some key points to understand:</p>
+        <ul>
+            <li>Reliability refers to the consistency of a measure, or the degree to which an instrument measures the same way each time it is used under the same conditions with the same subjects.</li>
+            <li>Several factors can affect reliability:</li>
+            <ul>
+                <li>Systematic bias: Consistent deviations in measurements due to the measurement process or instrument.</li>
+                <li>Learning effects: Improvements in performance due to familiarity with the task over multiple trials.</li>
+                <li>Within-subject variation: Natural fluctuations in an individual's performance or state This may also be referred to as random variation (unknown).</li>
+            </ul>
+            <li>Understanding reliability is essential in:</li>
+            <ol>
+                <li>Sports science for athlete performance assessment</li>
+                <li>Medical research for diagnostic test accuracy</li>
+                <li>Psychology for consistency in psychometric tests</li>
+                <li>Quality control in manufacturing processes</li>
+            </ol>
+        </ul>
+        <p>In the following sections, we'll explore these concepts in more detail and see how they impact measurements in practice.</p>
+    </div>
+
+    <div class="section" id="visualization">
+        <h2>Interactive Visualization</h2>
+        <p>Explore how different factors affect measurement reliability using the interactive graph below. Adjust the sliders to see how changes in systematic bias, learning effect, within-subject variation, and sample size impact the measurements over multiple trials.</p>
+        
+        <div class="controls-container">
+            <div class="column">
+                <div class="slider-container">
+                    <label for="trials-slider">Number of Trials:</label>
+                    <input type="range" id="trials-slider" min="1" max="10" step="1" value="5">
+                    <span id="trials-value" class="slider-value"></span>
+                </div>
+                <div class="slider-container">
+                    <label for="subjects-slider">Number of Subjects:</label>
+                    <input type="range" id="subjects-slider" min="1" max="20" step="1" value="10">
+                    <span id="subjects-value" class="slider-value"></span>
+                </div>
+            </div>
+            <div class="column">
+                <div class="slider-container">
+                    <label for="bias-slider">Systematic Bias:</label>
+                    <input type="range" id="bias-slider" min="0" max="20" step="0.5" value="10">
+                    <span id="bias-value" class="slider-value"></span>
+                </div>
+                <div class="slider-container">
+                    <label for="learning-slider">Learning Effect:</label>
+                    <input type="range" id="learning-slider" min="0.1" max="2" step="0.1" value="0.5">
+                    <span id="learning-value" class="slider-value"></span>
+                </div>
+                <div class="slider-container">
+                    <label for="variation-slider">Within-subject Variation:</label>
+                    <input type="range" id="variation-slider" min="0" max="10" step="0.1" value="5">
+                    <span id="variation-value" class="slider-value"></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="chart"></div>
+
+        <div class="toggle-container">
+            <div class="toggle-group">
+                <label>Show Group Average:</label>
+                <input type="radio" name="group-average" value="show" checked> Show
+                <input type="radio" name="group-average" value="hide"> Hide
+            </div>
+            <div class="toggle-group">
+                <label>Show Individual Paths:</label>
+                <input type="radio" name="individual-paths" value="show" checked> Show
+                <input type="radio" name="individual-paths" value="hide"> Hide
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="tutorial-content">
+        <h2>Understanding Reliability Metrics</h2>
+        <p>This section explains various reliability metrics, such as Intraclass Correlation Coefficient (ICC), Standard Error of Measurement (SEM), and Minimal Detectable Change (MDC). It discusses how these metrics are calculated and interpreted in the context of the visualization above.</p>
+    </div>
+
+    <div class="section" id="data-input">
+        <h2>Upload Your Data</h2>
+        <p>Use this section to upload your own data and analyze its reliability. Upload a CSV file with your measurement data to calculate reliability metrics. 
+            It is imperative that the data is labelled with the headings <b>ID,TRIAL1,TRIAL2</b> otherwise it won't be able to calculate </p>
+        <input type="file" id="csv-file" accept=".csv">
+    </div>
+
+    <div id="calculations">
+        <h2>Calculations</h2>
+        
+        <div class="question">
+            <p>1. Calculate the Standard Error of Measurement (SEM) based on your uploaded data.</p>
+            <input type="number" id="sem-calc" step="0.01" required>
+            <button onclick="checkSEM()">Check Answer</button>
+            <div id="sem-feedback" class="feedback"></div>
+        </div>
+
+        <div class="question">
+            <p>2. Based on the SEM you just calculated, how wide is the 95% confidence interval around any given measurement? (Hint: Consider that this is a range, so it extends both above and below the measured value.)</p>
+            <input type="number" id="ci-calc" step="0.01" required>
+            <button onclick="checkCI()">Check Answer</button>
+            <div id="ci-feedback" class="feedback"></div>
+        </div>
+
+        <div class="question">
+            <p>3. How large would a change in individual measurement need to be for you to be 95% confident that the change is not due to measurement error?</p>
+            <input type="number" id="mdc-calc" step="0.01" required>
+            <button onclick="checkMDC()">Check Answer</button>
+            <div id="mdc-feedback" class="feedback"></div>
+        </div>
+    </div>
+
+    <script src="reli_visual.js"></script>
+    <script>
+       let uploadedData = null;
+        let calculatedSEM = null;
+
+        document.getElementById('csv-file').addEventListener('change', function(e) {
+            Papa.parse(e.target.files[0], {
+                complete: function(results) {
+                    uploadedData = results.data;
+                    console.log("Data uploaded:", uploadedData);
+                    processData(uploadedData);
+                },
+                header: true,
+                dynamicTyping: true
+            });
+        });
+
+        function processData(data) {
+            data = data.filter(row => row.ID && row.TRIAL1 && row.TRIAL2);
+            
+            if (data.length === 0) {
+                alert("No valid data found in the CSV file.");
+                return;
+            }
+
+            const differences = data.map(row => row.TRIAL1 - row.TRIAL2);
+            calculatedSEM = calculateSEM(differences);
+            console.log("Calculated SEM:", calculatedSEM);
+        }
+
+        function calculateSEM(differences) {
+            const sd = d3.deviation(differences);
+            return sd / Math.sqrt(2);
+        }
+
+        function checkSEM() {
+            const userSEM = parseFloat(document.getElementById('sem-calc').value);
+            provideFeedback('sem-feedback', userSEM, calculatedSEM);
+        }
+
+        function checkCI() {
+            const userCI = parseFloat(document.getElementById('ci-calc').value);
+            const correctCI = calculatedSEM * 1.96 * 2;
+            provideFeedback('ci-feedback', userCI, correctCI);
+        }
+
+        function checkMDC() {
+            const userMDC = parseFloat(document.getElementById('mdc-calc').value);
+            const correctMDC = calculatedSEM * 1.96 * Math.sqrt(2);
+            provideFeedback('mdc-feedback', userMDC, correctMDC);
+        }
+
+        function provideFeedback(elementId, userValue, correctValue) {
+            const feedbackElement = document.getElementById(elementId);
+            
+            if (!calculatedSEM) {
+                feedbackElement.textContent = "Please upload data first.";
+                feedbackElement.className = "feedback incorrect";
+                return;
+            }
+
+            if (Math.abs(userValue - correctValue) < 0.01) {
+                feedbackElement.textContent = `Correct! The calculated value is ${correctValue.toFixed(2)}.`;
+                feedbackElement.className = "feedback correct";
+            } else {
+                feedbackElement.textContent = `Not quite. The correct value is ${correctValue.toFixed(2)}. Try again!`;
+                feedbackElement.className = "feedback incorrect";
+            }
+        }
+    </script>
+</body>
+</html>
